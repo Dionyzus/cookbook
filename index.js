@@ -16,7 +16,7 @@ const db = mongoose.connection;
 db.on('error', console.error.bind(console, 'MongoDb connection error: '));
 
 const corsOptions = {
-  origin: "http://localhost:3000"
+  origin: [`http://${process.env.ORIGIN_HOST}:${process.env.ORIGIN_PORT}`, `http://${process.env.HOSTNAME}:${process.env.ORIGIN_PORT}`]
 };
 
 app.use(cors(corsOptions));
@@ -30,5 +30,5 @@ const hostname = process.env.HOST;
 const port = process.env.PORT;
 
 app.listen(port, function() {
-    console.log(`Server running at http://${hostname}:${port}/`);
+    console.log(`Server running at http://${hostname}:${port}`);
 });
