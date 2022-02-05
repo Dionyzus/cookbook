@@ -4,16 +4,51 @@ export async function findAll(query) {
   try {
     //Looking for data containing text, how about this?
     if (query.text != null) {
-      return await Recipe.find({
+      const textSearch = {
         $text: { $search: query.text },
-      });
-      //Otherwise normal query
+      };
+      return await toPage(query, textSearch);
     }
-    return await Recipe.find(query);
+    //Otherwise normal query
+    return await toPage(query);
   } catch (error) {
     console.log("An error occurred: " + error);
     throw error;
   }
+}
+
+async function toPage(query, textSearch) {
+  const offset = parseInt(query.offset) > 0 ? parseInt(query.offset) : 0;
+  const limit = parseInt(query.limit) > 0 ? parseInt(query.limit) : 0;
+
+  const skip = offset * limit;
+
+  let recipeCollection;
+  if (textSearch != null) {
+    recipeCollection = await Recipe.find(textSearch).skip(skip).limit(limit);
+  } else {
+    recipeCollection = await Recipe.find(query).skip(skip).limit(limit);
+  }
+
+  const recipeCollectionCount = await Recipe.count();
+
+  const totalPages = Math.ceil(recipeCollectionCount / limit);
+
+  const pages = [];
+  for (let i = 0; i < totalPages; i++) {
+    pages.push(i);
+  }
+
+  const pageResult = {
+    recipeCollection,
+    pager: {
+      collectionSize: recipeCollectionCount,
+      currentPage: offset + 1,
+      pagesCount: totalPages,
+      pages: pages,
+    },
+  };
+  return pageResult;
 }
 
 export async function find(id) {
