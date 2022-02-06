@@ -1,48 +1,73 @@
 import { Recipe } from "../model/recipe";
+import { isNullOrEmpty } from "../util/stringUtil";
 
 export async function findAll(query) {
   try {
-    //Looking for data containing text, how about this?
-    if (query.text != null) {
-      const textSearch = {
+    if (
+      isNullOrEmpty(query.offset) &&
+      isNullOrEmpty(query.text) &&
+      isNullOrEmpty(query.name)
+    ) {
+      const recipeCollection = await Recipe.find().skip(0).limit(5);
+      return toPage(recipeCollection, await Recipe.count(), 5, 0);
+    }
+    else if (!isNullOrEmpty(query.text)) {
+      const searchText = {
         $text: { $search: query.text },
       };
-      return await toPage(query, textSearch);
+      const queryResult = await queryByText(query, searchText);
+      if (queryResult.pager.collectionSize != 0) {
+        return queryResult;
+      }
     }
-    //Otherwise normal query
-    return await toPage(query);
+    return await queryData(query);
   } catch (error) {
     console.log("An error occurred: " + error);
     throw error;
   }
 }
 
-async function toPage(query, textSearch) {
+async function queryByText(query, searchText) {
   const offset = parseInt(query.offset) > 0 ? parseInt(query.offset) : 0;
-  const limit = parseInt(query.limit) > 0 ? parseInt(query.limit) : 0;
-
+  const limit = parseInt(query.limit) > 0 ? parseInt(query.limit) : 5;
   const skip = offset * limit;
 
-  let recipeCollection;
-  if (textSearch != null) {
-    recipeCollection = await Recipe.find(textSearch).skip(skip).limit(limit);
-  } else {
-    recipeCollection = await Recipe.find(query).skip(skip).limit(limit);
+  const recipeCollection = await Recipe.find(searchText)
+    .skip(skip)
+    .limit(limit);
+  return toPage(recipeCollection, recipeCollection.length, limit, offset);
+}
+
+async function queryData(query) {
+  const { text, ...dbQuery } = query;
+  const name = dbQuery.name;
+
+  if (!Object.keys(dbQuery).length) {
+    return toPage([], 0, 5, 0);
   }
 
-  const recipeCollectionCount = await Recipe.count();
+  const offset = parseInt(query.offset) > 0 ? parseInt(query.offset) : 0;
+  const limit = parseInt(query.limit) > 0 ? parseInt(query.limit) : 5;
+  const skip = offset * limit;
 
-  const totalPages = Math.ceil(recipeCollectionCount / limit);
+  const recipeCollection = await Recipe.find(dbQuery).skip(skip).limit(limit);
 
-  const pages = [];
-  for (let i = 0; i < totalPages; i++) {
-    pages.push(i);
+  if (recipeCollection.length == 0) {
+    return toPage([], 0, 5, 0);
+  } else if (!isNullOrEmpty(name)) {
+    return toPage(recipeCollection, recipeCollection.length, limit, offset);
   }
+  return toPage(recipeCollection, await Recipe.count(), limit, offset);
+}
+
+function toPage(recipeCollection, collectionCount, limit, offset) {
+  const totalPages = Math.ceil(collectionCount / limit);
+  const pages = [...Array(totalPages).keys()];
 
   const pageResult = {
     recipeCollection,
     pager: {
-      collectionSize: recipeCollectionCount,
+      collectionSize: collectionCount,
       currentPage: offset + 1,
       pagesCount: totalPages,
       pages: pages,

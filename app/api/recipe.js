@@ -52,12 +52,11 @@ recipeRouter.put("/:id", async function (req, res) {
 recipeRouter.delete("/:id", async function (req, res) {
   try {
     await remove(req.params.id);
-    res.status(204).send({message: "Recipe deleted successfully"});
+    res.status(204).send({ message: "Recipe deleted successfully" });
   } catch (err) {
     //Custom server exception returned to the client?
     res.status(500).json({ error: err.message });
   }
 });
-
 
 export default recipeRouter;
