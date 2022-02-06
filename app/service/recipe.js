@@ -68,12 +68,10 @@ export async function findAll(query) {
       const searchText = {
         $text: { $search: query.text },
       };
-      const queryResult = await queryByText(query, searchText);
-      if (queryResult.pager.collectionSize != 0) {
-        return queryResult;
-      }
+      return await queryByText(query, searchText);
+    } else {
+      return await queryData(query);
     }
-    return await queryData(query);
   } catch (error) {
     console.log("An error occurred: " + error);
     throw error;
@@ -90,17 +88,29 @@ async function queryByText(query, searchText) {
   const recipeCollection = await Recipe.find(searchText)
     .skip(skip)
     .limit(limit);
+
   return toPage(recipeCollection, recipeCollection.length, limit, offset);
 }
 
 async function queryData(query) {
-  const offset =
+  let offset =
     parseInt(query.offset) > 0 ? parseInt(query.offset) : DEFAULT_OFFSET;
   const limit =
     parseInt(query.limit) > 0 ? parseInt(query.limit) : DEFAULT_LIMIT;
+
+  const collectionCount = await Recipe.count();
+  const pagesCount = Math.ceil(collectionCount / limit);
+
+  if (offset >= pagesCount) {
+    offset = pagesCount - 1;
+  }
+
   const skip = offset * limit;
 
   const dbQuery = transformQuery(query, ["name", "ingredients"]);
+
+  dbQuery["limit"] = limit;
+  dbQuery["offset"] = offset;
 
   if (!Object.keys(dbQuery).length) {
     return toPage([], 0, DEFAULT_LIMIT, DEFAULT_OFFSET);
