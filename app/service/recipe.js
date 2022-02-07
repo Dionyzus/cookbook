@@ -1,9 +1,6 @@
 import { Recipe } from "../model/recipe";
-import { toPage, transformQuery } from "../util/queryUtil";
+import { DEFAULT_LIMIT, DEFAULT_OFFSET, getPagingParams, toPage, transformQuery } from "../util/queryUtil";
 import { isNullOrEmpty } from "../util/stringUtil";
-
-const DEFAULT_LIMIT = 5;
-const DEFAULT_OFFSET = 0;
 
 export async function find(id) {
   try {
@@ -15,11 +12,16 @@ export async function find(id) {
 }
 
 export async function save(recipe) {
+
+  const {ingredients} = recipe;
+  
   const newRecipe = new Recipe({
     name: recipe.name,
     ingredients: recipe.ingredients,
     description: recipe.description,
   });
+
+
 
   try {
     return await newRecipe.save(newRecipe);
@@ -93,20 +95,7 @@ async function queryByText(query, searchText) {
 }
 
 async function queryData(query) {
-  let offset =
-    parseInt(query.offset) > 0 ? parseInt(query.offset) : DEFAULT_OFFSET;
-  const limit =
-    parseInt(query.limit) > 0 ? parseInt(query.limit) : DEFAULT_LIMIT;
-
-  const collectionCount = await Recipe.count();
-  const pagesCount = Math.ceil(collectionCount / limit);
-
-  if (offset >= pagesCount) {
-    offset = pagesCount - 1;
-  }
-
-  const skip = offset * limit;
-
+  const { limit, offset, skip } = await getPagingParams(query);
   const dbQuery = transformQuery(query, ["name", "ingredients"]);
 
   dbQuery["limit"] = limit;

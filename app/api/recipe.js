@@ -45,7 +45,9 @@ recipeRouter.put("/:id", async function (req, res) {
     res.status(200).json(recipe);
   } catch (err) {
     //Custom server exception returned to the client?
-    res.status(500).json({ error: err.message });
+    res
+      .status(404)
+      .json({ message: `Recipe with id: ${req.params.id} does not exist` });
   }
 });
 
@@ -55,7 +57,9 @@ recipeRouter.delete("/:id", async function (req, res) {
     res.status(204).send({ message: "Recipe deleted successfully" });
   } catch (err) {
     //Custom server exception returned to the client?
-    res.status(500).json({ error: err.message });
+    res
+      .status(404)
+      .json({ message: `Recipe with id: ${req.params.id} does not exist` });
   }
 });
 

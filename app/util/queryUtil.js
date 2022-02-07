@@ -1,3 +1,25 @@
+import { Recipe } from "../model/recipe";
+
+export const DEFAULT_LIMIT = 5;
+export const DEFAULT_OFFSET = 0;
+
+export async function getPagingParams(query) {
+  let offset =
+    parseInt(query.offset) > 0 ? parseInt(query.offset) : DEFAULT_OFFSET;
+  const limit =
+    parseInt(query.limit) > 0 ? parseInt(query.limit) : DEFAULT_LIMIT;
+
+  const collectionCount = await Recipe.count();
+  const pagesCount = Math.ceil(collectionCount / limit);
+
+  if (offset >= pagesCount) {
+    offset = pagesCount - 1;
+  }
+  const skip = Math.abs(offset * limit);
+
+  return { limit, offset, skip};
+}
+
 export function transformQuery(query, keys) {
   const dbQuery = {};
   Object.keys(query).forEach((key) => {
