@@ -1,39 +1,22 @@
 import { Recipe } from "../model/recipe";
-import { DEFAULT_LIMIT, DEFAULT_OFFSET, getPagingParams, toPage, transformQuery } from "../util/queryUtil";
+import { NotFoundException } from "../util/errorUtil";
+import {
+  DEFAULT_LIMIT,
+  DEFAULT_OFFSET,
+  getPagingParams,
+  toPage,
+  transformQuery,
+} from "../util/queryUtil";
 import { isNullOrEmpty } from "../util/stringUtil";
 
 export async function find(id) {
   try {
-    return await Recipe.findById(id);
-  } catch (error) {
-    console.log("An error occurred: " + error);
-    throw error;
-  }
-}
-
-export async function save(recipe) {
-
-  const {ingredients} = recipe;
-  
-  const newRecipe = new Recipe({
-    name: recipe.name,
-    ingredients: recipe.ingredients,
-    description: recipe.description,
-  });
-
-
-
-  try {
-    return await newRecipe.save(newRecipe);
-  } catch (error) {
-    console.log("An error occurred: " + error);
-    throw error;
-  }
-}
-
-export async function update(id, recipe) {
-  try {
-    return await Recipe.updateOne({ _id: id }, recipe);
+    const recipe = await Recipe.findById(id);
+    if (recipe != null) {
+      return recipe;
+    } else {
+      throw new NotFoundException(`Recipe with id: ${id} does not exist`);
+    }
   } catch (error) {
     console.log("An error occurred: " + error);
     throw error;
@@ -42,7 +25,44 @@ export async function update(id, recipe) {
 
 export async function remove(id) {
   try {
-    await Recipe.deleteOne({ _id: id });
+    const recipe = await find(id);
+    if (recipe != null) {
+      return await Recipe.deleteOne({ _id: id });
+    } else {
+      throw new NotFoundException(`Recipe with id: ${id} does not exist`);
+    }
+  } catch (error) {
+    console.log("An error occurred: " + error);
+    throw error;
+  }
+}
+
+export async function update(id, recipeData) {
+  try {
+    const recipe = await find(id);
+    if (recipe != null) {
+      await Recipe.updateOne({ _id: id }, recipeData);
+      return recipeData;
+    } else {
+      throw new NotFoundException(`Recipe with id: ${id} does not exist`);
+    }
+  } catch (error) {
+    console.log("An error occurred: " + error);
+    throw error;
+  }
+}
+
+export async function save(recipe) {
+  const { ingredients } = recipe;
+
+  const newRecipe = new Recipe({
+    name: recipe.name,
+    ingredients: recipe.ingredients,
+    description: recipe.description,
+  });
+
+  try {
+    return await newRecipe.save(newRecipe);
   } catch (error) {
     console.log("An error occurred: " + error);
     throw error;

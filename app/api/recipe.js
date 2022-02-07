@@ -1,65 +1,78 @@
 import express from "express";
 import { save, find, findAll, update, remove } from "../service/recipe";
+import { getHttpStatusCode, HttpStatusCode } from "../util/errorUtil";
+import { recipeValidationSchema, validateRequest } from "../validation/recipe";
 
 const recipeRouter = express.Router();
 
-recipeRouter.get("/", async function (req, res) {
+recipeRouter.get("/", async (req, res) => {
   try {
     const recipeCollection = await findAll(req.query);
-    res.status(200).json(recipeCollection);
-  } catch (err) {
-    //Custom server exception returned to the client?
-    res.status(500).json({ error: err.message });
+    res.status(HttpStatusCode.SUCCESS).json(recipeCollection);
+  } catch (error) {
+    res
+      .status(HttpStatusCode.INTERNAL_SERVER_ERROR)
+      .json({ message: "Internal Server Error" });
   }
 });
 
-recipeRouter.get("/:id", async function (req, res) {
+recipeRouter.post("/", async (req, res) => {
+  const { error, value } = await validateRequest(req.body);
+
+  if (error) {
+    res.status(HttpStatusCode.BAD_REQUEST).json({
+      message: "Invalid request data",
+      data: error.message,
+    });
+  } else {
+    try {
+      const recipe = await save(value);
+      res.status(HttpStatusCode.CREATED).json(recipe);
+    } catch (error) {
+      res
+        .status(HttpStatusCode.INTERNAL_SERVER_ERROR)
+        .json({ message: "Internal Server Error" });
+    }
+  }
+});
+
+recipeRouter.get("/:id", async (req, res) => {
   try {
     const recipe = await find(req.params.id);
-    if (recipe != null) {
-      res.status(200).json(recipe);
-    } else {
-      res
-        .status(404)
-        .json({ message: `Recipe with id: ${req.params.id} does not exist` });
-    }
-  } catch (err) {
-    //Custom server exception returned to the client?
-    res.status(500).json({ error: err.message });
+    res.status(HttpStatusCode.SUCCESS).json(recipe);
+  } catch (error) {
+    const code = getHttpStatusCode(error);
+    res.status(code).json({ message: error.message });
   }
 });
 
-recipeRouter.post("/", async function (req, res) {
-  try {
-    const recipe = await save(req.body);
-    res.status(201).json(recipe);
-  } catch (err) {
-    //Custom server exception returned to the client?
-    res.status(500).json({ error: err.message });
-  }
-});
+recipeRouter.put("/:id", async (req, res) => {
+  const { error, value } = await validateRequest(req.body);
 
-recipeRouter.put("/:id", async function (req, res) {
-  try {
-    const recipe = await update(req.params.id, req.body);
-    res.status(200).json(recipe);
-  } catch (err) {
-    //Custom server exception returned to the client?
+  if (error) {
+    const code = getHttpStatusCode(error);
     res
-      .status(404)
-      .json({ message: `Recipe with id: ${req.params.id} does not exist` });
+      .status(code)
+      .json({ message: "Invalid request data", data: error.message });
+  } else {
+    try {
+      const recipe = await update(req.params.id, value);
+      res.status(HttpStatusCode.SUCCESS).json(recipe);
+    } catch (error) {
+      throw error;
+    }
   }
 });
 
-recipeRouter.delete("/:id", async function (req, res) {
+recipeRouter.delete("/:id", async (req, res) => {
   try {
     await remove(req.params.id);
-    res.status(204).send({ message: "Recipe deleted successfully" });
-  } catch (err) {
-    //Custom server exception returned to the client?
     res
-      .status(404)
-      .json({ message: `Recipe with id: ${req.params.id} does not exist` });
+      .status(HttpStatusCode.NO_CONTENT)
+      .send({ message: "Recipe deleted successfully" });
+  } catch (error) {
+    const code = getHttpStatusCode(error);
+    res.status(code).json({ message: error.message });
   }
 });
 
