@@ -1,7 +1,7 @@
 import express from "express";
 import { save, find, findAll, update, remove } from "../service/recipe";
 import { getHttpStatusCode, HttpStatusCode } from "../util/errorUtil";
-import { recipeValidationSchema, validateRequest } from "../validation/recipe";
+import { validateRequest } from "../validation/recipe";
 
 const recipeRouter = express.Router();
 
