@@ -17,7 +17,7 @@ export async function getPagingParams(query) {
   }
   const skip = Math.abs(offset * limit);
 
-  return { limit, offset, skip};
+  return { limit, offset, skip };
 }
 
 export function transformQuery(query, keys) {
@@ -25,7 +25,11 @@ export function transformQuery(query, keys) {
   Object.keys(query).forEach((key) => {
     if (keys.includes(key)) {
       query[key] = { $regex: query[key], $options: "i" };
-      dbQuery[key] = query[key];
+      if (key === "ingredient") {
+        dbQuery["ingredients.ingredient"] = query[key];
+      } else {
+        dbQuery[key] = query[key];
+      }
       delete query[key];
     }
   });

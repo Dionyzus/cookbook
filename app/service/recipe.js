@@ -54,7 +54,7 @@ export async function findAll(query) {
     if (
       isNullOrEmpty(query.offset) &&
       isNullOrEmpty(query.name) &&
-      isNullOrEmpty(query.ingredients) &&
+      isNullOrEmpty(query.ingredient) &&
       isNullOrEmpty(query.text)
     ) {
       const recipeCollection = await Recipe.find()
@@ -96,7 +96,7 @@ async function queryByText(query, searchText) {
 
 async function queryData(query) {
   const { limit, offset, skip } = await getPagingParams(query);
-  const dbQuery = transformQuery(query, ["name", "ingredients"]);
+  const dbQuery = transformQuery(query, ["name", "ingredient"]);
 
   dbQuery["limit"] = limit;
   dbQuery["offset"] = offset;
@@ -111,7 +111,7 @@ async function queryData(query) {
     return toPage([], 0, DEFAULT_LIMIT, DEFAULT_OFFSET);
   } else if (
     !isNullOrEmpty(dbQuery.name) ||
-    !isNullOrEmpty(dbQuery.ingredients)
+    !isNullOrEmpty(dbQuery.ingredient)
   ) {
     return toPage(recipeCollection, recipeCollection.length, limit, offset);
   }
