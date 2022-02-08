@@ -115,7 +115,9 @@ describe("Get Endpoints", () => {
     expect(res.body.ingredients.amount).toEqual(recipe.ingredients.amount);
     expect(res.body.description).toEqual(recipe.description);
   });
+});
 
+describe("Query Endpoints", () => {
   it("should search a recipe by name", async () => {
     const res = await request(app).get("/api/recipes/search").query({
       name: recipe.name,
