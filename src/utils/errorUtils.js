@@ -17,6 +17,7 @@ const badRequestErrors = [
   "BadRequestException",
   "ValidationError",
 ];
+
 exports.getHttpStatusCode = (err) => {
   if (badRequestErrors.includes(err.name)) {
     return this.HttpStatusCode.BAD_REQUEST;

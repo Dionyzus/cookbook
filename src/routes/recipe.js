@@ -3,6 +3,18 @@ const router = express.Router();
 const recipeController = require("../controllers/recipe");
 
 /**
+ * @api {get} /api/recipes/search Get recipes
+ * @apiName GetRecipes
+ * @apiGroup Recipes
+ *
+ * @apiParam {String} key Search field [text]
+ * @apiParam {String} value Search value
+ * @apiParam {Number} page Pagination page
+ * @apiParam {Number} limit Pagination limit
+ */
+ router.get("/search", recipeController.queryCollection);
+ 
+/**
  * @api {get} /api/recipes/:id Get recipe
  * @apiName GetRecipe
  * @apiGroup Recipes

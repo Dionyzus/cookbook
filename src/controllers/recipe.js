@@ -1,10 +1,19 @@
-const { save, find, findAll, update, remove, patch } = require("../services/recipe");
+const {
+  save,
+  get,
+  getAll,
+  search,
+  update,
+  remove,
+  patch,
+} = require("../services/recipe/recipe");
+
 const { getHttpStatusCode, HttpStatusCode } = require("../utils/errorUtils");
 const { validateRequest } = require("../validations/recipe");
 
 async function getItem(req, res) {
   try {
-    const recipe = await find(req.params.id);
+    const recipe = await get(req.params.id);
     res.status(HttpStatusCode.SUCCESS).json(recipe);
   } catch (error) {
     const code = getHttpStatusCode(error);
@@ -14,7 +23,17 @@ async function getItem(req, res) {
 
 async function getCollection(req, res) {
   try {
-    const recipeCollection = await findAll(req.query);
+    const recipeCollection = await getAll(req.query);
+    res.status(HttpStatusCode.SUCCESS).json(recipeCollection);
+  } catch (error) {
+    const code = getHttpStatusCode(error);
+    res.status(code).json({ message: error.message });
+  }
+}
+
+async function queryCollection(req, res) {
+  try {
+    const recipeCollection = await search(req.query);
     res.status(HttpStatusCode.SUCCESS).json(recipeCollection);
   } catch (error) {
     const code = getHttpStatusCode(error);
@@ -93,6 +112,7 @@ async function removeItem(req, res) {
 module.exports = {
   getItem,
   getCollection,
+  queryCollection,
   updateItem,
   patchItem,
   saveItem,

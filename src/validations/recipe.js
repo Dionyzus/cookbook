@@ -2,11 +2,13 @@ const Joi = require("joi");
 
 const validationSchema = Joi.object()
   .keys({
+    _id: Joi.string(),
     name: Joi.string().min(3).max(100).required(),
     description: Joi.string().min(15).max(250).required(),
     ingredients: Joi.array()
       .min(1)
       .items({
+        _id: Joi.string(),
         ingredient: Joi.string().min(3).max(30).required(),
         amount: Joi.object()
           .keys({
@@ -20,11 +22,13 @@ const validationSchema = Joi.object()
   .required();
 
 const patchValidationSchema = Joi.object().keys({
+  _id: Joi.string(),
   name: Joi.string().min(3).max(100),
   description: Joi.string().min(15).max(250),
   ingredients: Joi.array()
     .min(1)
     .items({
+      _id: Joi.string(),
       ingredient: Joi.string().min(3).max(30),
       amount: Joi.object().keys({
         value: Joi.number(),

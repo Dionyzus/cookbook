@@ -117,9 +117,8 @@ describe("Get Endpoints", () => {
   });
 
   it("should search a recipe by name", async () => {
-    const res = await request(app).get("/api/recipes").query({
-      key: "name",
-      value: recipe.name,
+    const res = await request(app).get("/api/recipes/search").query({
+      name: recipe.name,
     });
 
     expect(res.statusCode).toEqual(200);
@@ -139,10 +138,9 @@ describe("Get Endpoints", () => {
   });
 
   it("should search a recipe by ingredient", async () => {
-    const res = await request(app).get("/api/recipes").query({
-      key: "ingredient",
-      value: recipe.ingredients[0].ingredient,
-    });
+    const res = await request(app)
+      .get("/api/recipes/search")
+      .query({ ingredient: recipe.ingredients[0].ingredient });
 
     expect(res.statusCode).toEqual(200);
     res.body.collection.forEach((el) => {

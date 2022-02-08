@@ -1,15 +1,11 @@
-const Recipe = require("../models/recipe");
-const NotFoundException = require("../utils/errorUtils");
-const {
-  DEFAULT_LIMIT,
-  DEFAULT_OFFSET,
-  toPage,
-  queryByText,
-  queryData,
-} = require("../utils/queryUtils");
-const { isNullOrEmpty } = require("../utils/stringUtils");
+const Recipe = require("../../models/recipe");
 
-async function find(id) {
+const { queryByText, queryByProperties } = require("../query/query");
+const { isNullOrEmpty } = require("../../utils/stringUtils");
+const { getPagingParams, toPage } = require("../paging/paging");
+const { NotFoundException } = require("../../utils/errorUtils");
+
+async function get(id) {
   try {
     const recipe = await Recipe.findById(id);
     if (recipe != null) {
@@ -23,31 +19,30 @@ async function find(id) {
   }
 }
 
-async function findAll(query) {
+async function search(query) {
   try {
-    if (
-      isNullOrEmpty(query.offset) &&
-      isNullOrEmpty(query.name) &&
-      isNullOrEmpty(query.ingredient) &&
-      isNullOrEmpty(query.text)
-    ) {
-      const recipeCollection = await Recipe.find()
-        .skip(DEFAULT_OFFSET)
-        .limit(DEFAULT_LIMIT);
-      return toPage(
-        recipeCollection,
-        await Recipe.count(),
-        DEFAULT_LIMIT,
-        DEFAULT_OFFSET
-      );
-    } else if (!isNullOrEmpty(query.text)) {
-      const searchText = {
-        $text: { $search: query.text },
-      };
-      return await queryByText(query, searchText);
+    if (query.hasOwnProperty("text")) {
+      if (isNullOrEmpty(query.text)) {
+        return await getAll(query);
+      }
+      return await queryByText(query);
     } else {
-      return await queryData(query);
+      return await queryByProperties(query);
     }
+  } catch (error) {
+    console.log("An error occurred: " + error);
+    throw error;
+  }
+}
+
+async function getAll(query) {
+  try {
+    const { limit, offset, skip } = getPagingParams(query);
+
+    const recipeCollection = await Recipe.find().skip(skip).limit(limit);
+    const collectionSize = await Recipe.count();
+
+    return toPage(recipeCollection, collectionSize, limit, offset);
   } catch (error) {
     console.log("An error occurred: " + error);
     throw error;
@@ -56,7 +51,7 @@ async function findAll(query) {
 
 async function update(id, recipeData) {
   try {
-    const recipe = await find(id);
+    const recipe = await get(id);
     if (recipe != null) {
       await Recipe.updateOne({ _id: id }, recipeData);
       return recipeData;
@@ -71,7 +66,7 @@ async function update(id, recipeData) {
 
 async function patch(id, recipeData) {
   try {
-    const recipe = await find(id);
+    const recipe = await get(id);
     if (recipe != null) {
       await Recipe.updateOne({ _id: id }, recipeData);
       return recipeData;
@@ -85,8 +80,6 @@ async function patch(id, recipeData) {
 }
 
 async function save(recipe) {
-  const { ingredients } = recipe;
-
   const newRecipe = new Recipe({
     name: recipe.name,
     ingredients: recipe.ingredients,
@@ -103,7 +96,7 @@ async function save(recipe) {
 
 async function remove(id) {
   try {
-    const recipe = await find(id);
+    const recipe = await get(id);
     if (recipe != null) {
       return await Recipe.deleteOne({ _id: id });
     } else {
@@ -116,8 +109,9 @@ async function remove(id) {
 }
 
 module.exports = {
-  find,
-  findAll,
+  get,
+  getAll,
+  search,
   update,
   patch,
   save,
