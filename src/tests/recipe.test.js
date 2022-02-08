@@ -39,6 +39,7 @@ const updatedRecipe = {
   description: "Not as salty pie",
 };
 
+//add patch route
 const partialRecipeUpdate = {
   description: "Updated description for a recipe",
 };
@@ -180,7 +181,7 @@ describe("Put Endpoint", () => {
 describe("Delete Endpoint", () => {
   it("should delete a recipe", async () => {
     const res = await request(app).delete(`/api/recipes/${recipeId}`);
-    //add check if body is empty
     expect(res.statusCode).toEqual(204);
+    expect(res.body).toMatchObject({});
   });
 });
