@@ -13,7 +13,7 @@ const validationSchema = Joi.object()
         amount: Joi.object()
           .keys({
             value: Joi.number().required(),
-            unit: Joi.string().valid("g", "kg", "ml", "l").required(),
+            unit: Joi.string().valid("g", "kg", "ml", "l", "num").required(),
           })
           .required(),
       })
@@ -32,7 +32,7 @@ const patchValidationSchema = Joi.object().keys({
       ingredient: Joi.string().min(3).max(30),
       amount: Joi.object().keys({
         value: Joi.number(),
-        unit: Joi.string().valid("g", "kg", "ml", "l"),
+        unit: Joi.string().valid("g", "kg", "ml", "l", "num"),
       }),
     }),
 });

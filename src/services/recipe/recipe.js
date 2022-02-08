@@ -37,7 +37,8 @@ async function search(query) {
 
 async function getAll(query) {
   try {
-    const { limit, offset, skip } = getPagingParams(query);
+    const { text, ...dbQuery } = query;
+    const { limit, offset, skip } = getPagingParams(dbQuery);
 
     const recipeCollection = await Recipe.find().skip(skip).limit(limit);
     const collectionSize = await Recipe.count();
