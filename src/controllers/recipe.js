@@ -17,9 +17,8 @@ async function getCollection(req, res) {
     const recipeCollection = await findAll(req.query);
     res.status(HttpStatusCode.SUCCESS).json(recipeCollection);
   } catch (error) {
-    res
-      .status(HttpStatusCode.INTERNAL_SERVER_ERROR)
-      .json({ message: "Internal Server Error" });
+    const code = getHttpStatusCode(error);
+    res.status(code).json({ message: error.message });
   }
 }
 

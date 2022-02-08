@@ -1,4 +1,5 @@
 const Recipe = require("../models/recipe");
+const { BadRequestException } = require("./errorUtils");
 const { isNullOrEmpty } = require("./stringUtils");
 
 const DEFAULT_LIMIT = 5;
@@ -20,7 +21,8 @@ async function queryByText(query, searchText) {
 
 async function queryData(query) {
   const { limit, offset, skip } = await getPagingParams(query);
-  const dbQuery = transformQuery(query, ["name", "ingredient"]);
+
+  const dbQuery = transformQuery(query);
 
   dbQuery["limit"] = limit;
   dbQuery["offset"] = offset;
@@ -42,6 +44,22 @@ async function queryData(query) {
   return toPage(recipeCollection, await Recipe.count(), limit, offset);
 }
 
+function toPage(collection, collectionCount, limit, offset) {
+  const totalPages = Math.ceil(collectionCount / limit);
+  const pages = [...Array(totalPages).keys()];
+
+  const pageResult = {
+    collection,
+    pager: {
+      collectionSize: collectionCount,
+      currentPage: offset + 1,
+      pagesCount: totalPages,
+      pages: pages,
+    },
+  };
+  return pageResult;
+}
+
 async function getPagingParams(query) {
   let offset =
     parseInt(query.offset) > 0 ? parseInt(query.offset) : DEFAULT_OFFSET;
@@ -59,36 +77,27 @@ async function getPagingParams(query) {
   return { limit, offset, skip };
 }
 
-function transformQuery(query, keys) {
+function transformQuery(query) {
   const dbQuery = {};
-  Object.keys(query).forEach((key) => {
-    if (keys.includes(key)) {
-      query[key] = { $regex: query[key], $options: "i" };
-      if (key === "ingredient") {
-        dbQuery["ingredients.ingredient"] = query[key];
-      } else {
-        dbQuery[key] = query[key];
-      }
-      delete query[key];
+
+  const queryKeys = Object.keys(query);
+  const queryFields = ["name", "ingredient", "limit", "offset"];
+
+  queryKeys.forEach((key) => {
+    if (!queryFields.includes(key)) {
+      throw new BadRequestException("invalid search key: " + key);
     }
+
+    query[key] = { $regex: query[key], $options: "i" };
+    if (key === "ingredient") {
+      dbQuery["ingredients.ingredient"] = query[key];
+    } else {
+      dbQuery[key] = query[key];
+    }
+
+    delete query[key];
   });
   return dbQuery;
-}
-
-function toPage(collection, collectionCount, limit, offset) {
-  const totalPages = Math.ceil(collectionCount / limit);
-  const pages = [...Array(totalPages).keys()];
-
-  const pageResult = {
-    collection,
-    pager: {
-      collectionSize: collectionCount,
-      currentPage: offset + 1,
-      pagesCount: totalPages,
-      pages: pages,
-    },
-  };
-  return pageResult;
 }
 
 module.exports = {

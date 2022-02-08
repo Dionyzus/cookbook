@@ -25,6 +25,20 @@ const recipe = {
   description: "This is very sweet cake",
 };
 
+const newRecipe = {
+  name: "Bad cake",
+  ingredients: [
+    {
+      ingredient: "Very bad",
+      amount: {
+        value: 100,
+        unit: "g",
+      },
+    },
+  ],
+  description: "This is very bad cake",
+};
+
 const updatedRecipe = {
   name: "Salt pie",
   ingredients: [
@@ -45,6 +59,7 @@ const partialRecipeUpdate = {
 };
 
 let recipeId = null;
+let newRecipeId = null;
 
 describe("Post Endpoint", () => {
   it("should create a new recipe", async () => {
@@ -147,6 +162,9 @@ describe("Get Endpoints", () => {
   });
 
   it("should get paginated recipes", async () => {
+    const postRes = await request(app).post("/api/recipes").send(newRecipe);
+    newRecipeId = postRes.body._id;
+
     const res = await request(app).get("/api/recipes").query({
       offset: 0,
       limit: 1,
@@ -183,5 +201,8 @@ describe("Delete Endpoint", () => {
     const res = await request(app).delete(`/api/recipes/${recipeId}`);
     expect(res.statusCode).toEqual(204);
     expect(res.body).toMatchObject({});
+
+    //remove other recipe as well
+    await request(app).delete(`/api/recipes/${newRecipeId}`);
   });
 });

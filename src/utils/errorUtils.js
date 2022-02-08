@@ -5,11 +5,20 @@ exports.NotFoundException = class NotFoundException extends Error {
   }
 };
 
-exports.getHttpStatusCode = (err) => {
-  if (err.name === "CastError") {
-    return HttpStatusCode.BAD_REQUEST;
+exports.BadRequestException = class BadRequestException extends Error {
+  constructor(message) {
+    super(message);
+    this.name = "BadRequestException";
   }
-  return HttpStatusCode.NOT_FOUND;
+};
+
+exports.getHttpStatusCode = (err) => {
+  if (err.name === "CastError" || err.name === "BadRequestException") {
+    return this.HttpStatusCode.BAD_REQUEST;
+  } else if (err.name === "NotFoundException") {
+    return this.HttpStatusCode.NOT_FOUND;
+  }
+  return this.HttpStatusCode.INTERNAL_SERVER_ERROR;
 };
 
 exports.HttpStatusCode = {
