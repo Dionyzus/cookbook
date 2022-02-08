@@ -1,6 +1,12 @@
 const Recipe = require("../models/recipe");
 const NotFoundException = require("../utils/errorUtils");
-const { DEFAULT_LIMIT, DEFAULT_OFFSET, toPage, queryByText, queryData } = require("../utils/queryUtils");
+const {
+  DEFAULT_LIMIT,
+  DEFAULT_OFFSET,
+  toPage,
+  queryByText,
+  queryData,
+} = require("../utils/queryUtils");
 const { isNullOrEmpty } = require("../utils/stringUtils");
 
 async function find(id) {
@@ -17,13 +23,30 @@ async function find(id) {
   }
 }
 
-async function remove(id) {
+async function findAll(query) {
   try {
-    const recipe = await find(id);
-    if (recipe != null) {
-      return await Recipe.deleteOne({ _id: id });
+    if (
+      isNullOrEmpty(query.offset) &&
+      isNullOrEmpty(query.name) &&
+      isNullOrEmpty(query.ingredient) &&
+      isNullOrEmpty(query.text)
+    ) {
+      const recipeCollection = await Recipe.find()
+        .skip(DEFAULT_OFFSET)
+        .limit(DEFAULT_LIMIT);
+      return toPage(
+        recipeCollection,
+        await Recipe.count(),
+        DEFAULT_LIMIT,
+        DEFAULT_OFFSET
+      );
+    } else if (!isNullOrEmpty(query.text)) {
+      const searchText = {
+        $text: { $search: query.text },
+      };
+      return await queryByText(query, searchText);
     } else {
-      throw new NotFoundException(`Recipe with id: ${id} does not exist`);
+      return await queryData(query);
     }
   } catch (error) {
     console.log("An error occurred: " + error);
@@ -63,30 +86,13 @@ async function save(recipe) {
   }
 }
 
-async function findAll(query) {
+async function remove(id) {
   try {
-    if (
-      isNullOrEmpty(query.offset) &&
-      isNullOrEmpty(query.name) &&
-      isNullOrEmpty(query.ingredient) &&
-      isNullOrEmpty(query.text)
-    ) {
-      const recipeCollection = await Recipe.find()
-        .skip(DEFAULT_OFFSET)
-        .limit(DEFAULT_LIMIT);
-      return toPage(
-        recipeCollection,
-        await Recipe.count(),
-        DEFAULT_LIMIT,
-        DEFAULT_OFFSET
-      );
-    } else if (!isNullOrEmpty(query.text)) {
-      const searchText = {
-        $text: { $search: query.text },
-      };
-      return await queryByText(query, searchText);
+    const recipe = await find(id);
+    if (recipe != null) {
+      return await Recipe.deleteOne({ _id: id });
     } else {
-      return await queryData(query);
+      throw new NotFoundException(`Recipe with id: ${id} does not exist`);
     }
   } catch (error) {
     console.log("An error occurred: " + error);
