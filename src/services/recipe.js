@@ -69,6 +69,21 @@ async function update(id, recipeData) {
   }
 }
 
+async function patch(id, recipeData) {
+  try {
+    const recipe = await find(id);
+    if (recipe != null) {
+      await Recipe.updateOne({ _id: id }, recipeData);
+      return recipeData;
+    } else {
+      throw new NotFoundException(`Recipe with id: ${id} does not exist`);
+    }
+  } catch (error) {
+    console.log("An error occurred: " + error);
+    throw error;
+  }
+}
+
 async function save(recipe) {
   const { ingredients } = recipe;
 
@@ -104,6 +119,7 @@ module.exports = {
   find,
   findAll,
   update,
+  patch,
   save,
   remove,
 };

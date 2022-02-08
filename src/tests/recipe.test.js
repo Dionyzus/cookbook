@@ -53,7 +53,6 @@ const updatedRecipe = {
   description: "Not as salty pie",
 };
 
-//add patch route
 const partialRecipeUpdate = {
   description: "Updated description for a recipe",
 };
@@ -193,6 +192,18 @@ describe("Put Endpoint", () => {
       updatedRecipe.ingredients.amount
     );
     expect(res.body.description).toEqual(updatedRecipe.description);
+  });
+});
+
+describe("Patch Endpoint", () => {
+  it("should partially edit a recipe", async () => {
+    const res = await request(app)
+      .patch(`/api/recipes/${recipeId}`)
+      .send(partialRecipeUpdate);
+
+    expect(res.statusCode).toEqual(200);
+    expect(res.body).toHaveProperty("description");
+    expect(res.body.description).toEqual(partialRecipeUpdate.description);
   });
 });
 

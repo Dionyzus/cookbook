@@ -12,8 +12,13 @@ exports.BadRequestException = class BadRequestException extends Error {
   }
 };
 
+const badRequestErrors = [
+  "CastError",
+  "BadRequestException",
+  "ValidationError",
+];
 exports.getHttpStatusCode = (err) => {
-  if (err.name === "CastError" || err.name === "BadRequestException") {
+  if (badRequestErrors.includes(err.name)) {
     return this.HttpStatusCode.BAD_REQUEST;
   } else if (err.name === "NotFoundException") {
     return this.HttpStatusCode.NOT_FOUND;

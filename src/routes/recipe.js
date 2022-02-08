@@ -33,6 +33,15 @@ router.get("/", recipeController.getCollection);
 router.put("/:id", recipeController.updateItem);
 
 /**
+ * @api {patch} /api/recipes/:id Partially edit recipe
+ * @apiName PatchRecipe
+ * @apiGroup Recipes
+ *
+ * @apiParam {Number} id Recipe unique ID.
+ */
+ router.patch("/:id", recipeController.patchItem);
+
+/**
  * @api {post} /api/recipes/ Create recipe
  * @apiName CreateRecipe
  * @apiGroup Recipes

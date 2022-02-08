@@ -1,6 +1,6 @@
 const Joi = require("joi");
 
-const recipeValidationSchema = Joi.object()
+const validationSchema = Joi.object()
   .keys({
     name: Joi.string().min(3).max(100).required(),
     description: Joi.string().min(15).max(250).required(),
@@ -19,9 +19,29 @@ const recipeValidationSchema = Joi.object()
   })
   .required();
 
-exports.validateRequest = async (recipe) => {
+const patchValidationSchema = Joi.object().keys({
+  name: Joi.string().min(3).max(100),
+  description: Joi.string().min(15).max(250),
+  ingredients: Joi.array()
+    .min(1)
+    .items({
+      ingredient: Joi.string().min(3).max(30),
+      amount: Joi.object().keys({
+        value: Joi.number(),
+        unit: Joi.string().valid("g", "kg", "ml", "l"),
+      }),
+    }),
+});
+
+exports.validateRequest = async (recipe, method) => {
   try {
-    const value = await recipeValidationSchema.validateAsync(recipe);
+    let value;
+    if (method === "PATCH") {
+      value = await patchValidationSchema.validateAsync(recipe);
+    } else {
+      value = await validationSchema.validateAsync(recipe);
+    }
+
     return { value: value, error: null };
   } catch (error) {
     return { error: error, value: null };

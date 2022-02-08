@@ -1,4 +1,4 @@
-const { save, find, findAll, update, remove } = require("../services/recipe");
+const { save, find, findAll, update, remove, patch } = require("../services/recipe");
 const { getHttpStatusCode, HttpStatusCode } = require("../utils/errorUtils");
 const { validateRequest } = require("../validations/recipe");
 
@@ -23,7 +23,7 @@ async function getCollection(req, res) {
 }
 
 async function updateItem(req, res) {
-  const { error, value } = await validateRequest(req.body);
+  const { error, value } = await validateRequest(req.body, "PUT");
 
   if (error) {
     const code = getHttpStatusCode(error);
@@ -40,8 +40,26 @@ async function updateItem(req, res) {
   }
 }
 
+async function patchItem(req, res) {
+  const { error, value } = await validateRequest(req.body, "PATCH");
+
+  if (error) {
+    const code = getHttpStatusCode(error);
+    res
+      .status(code)
+      .json({ message: "Invalid request data", data: error.message });
+  } else {
+    try {
+      const recipe = await patch(req.params.id, value);
+      res.status(HttpStatusCode.SUCCESS).json(recipe);
+    } catch (error) {
+      throw error;
+    }
+  }
+}
+
 async function saveItem(req, res) {
-  const { error, value } = await validateRequest(req.body);
+  const { error, value } = await validateRequest(req.body, "POST");
 
   if (error) {
     res.status(HttpStatusCode.BAD_REQUEST).json({
@@ -76,6 +94,7 @@ module.exports = {
   getItem,
   getCollection,
   updateItem,
+  patchItem,
   saveItem,
   removeItem,
 };
