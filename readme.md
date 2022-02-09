@@ -50,6 +50,8 @@ In the end structure should be:
 
 - docker-compose.yaml
 
+Rename .testEnv file to .env and fill out missing fields.
+
 To run the application run command: `docker-compose up`  to shut it `down docker-compose down` .
 
 #### Testing API endpoints
