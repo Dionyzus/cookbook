@@ -50,7 +50,7 @@ In the end structure should be:
 
 - docker-compose.yaml
 
-To run the application run command: `docker-compose up`  to shut it `down docker-compose-down` .
+To run the application run command: `docker-compose up`  to shut it `down docker-compose down` .
 
 #### Testing API endpoints
 
