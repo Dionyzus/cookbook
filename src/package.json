@@ -10,10 +10,12 @@
     "esm": "^3.2.25",
     "express": "^4.17.2",
     "joi": "^17.6.0",
-    "mongoose": "^6.2.0"
+    "mongoose": "^6.2.0",
+    "nodemon": "^2.0.15"
   },
   "scripts": {
-    "test": "jest"
+    "test": "jest",
+    "start": "nodemon -r esm server.js"
   },
   "author": "iodak",
   "license": "ISC",
